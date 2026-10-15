@@ -431,6 +431,19 @@ input, textarea, select { font: inherit; color: inherit; }
 .tool-group .btn { border: 0; background: transparent; padding: 5px 9px; border-radius: 6px; }
 .tool-group .btn.active { background: #fff; box-shadow: var(--shadow); color: var(--accent); }
 
+/* 缩放控件：两个按钮必须等宽，否则（全角 ＋ 比 − 宽）整组会左右不对称、数字看着偏。
+   数字用等宽数字，避免 98% / 175% 切换时字宽变化导致抖动。 */
+.tool-group .zoom-btn {
+  width: 26px; padding: 5px 0; display: grid; place-items: center;
+  font-size: 13px; line-height: 1;
+}
+.zoom-value {
+  min-width: 48px; padding: 4px 2px; border: 0; border-radius: 6px; background: transparent;
+  font: inherit; font-size: 11.5px; line-height: 1; color: var(--muted); cursor: pointer;
+  font-variant-numeric: tabular-nums; text-align: center;
+}
+.zoom-value:hover { background: rgba(16, 24, 40, 0.07); color: var(--text); }
+
 /* 拖拽遮罩 */
 .dropzone {
   position: fixed; inset: 0; z-index: 90; background: rgba(47, 95, 208, 0.12); backdrop-filter: blur(1px);

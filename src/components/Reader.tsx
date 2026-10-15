@@ -421,15 +421,15 @@ export default function Reader({
             整页
           </button>
         </div>
-        <div className="tool-group">
-          <button className="btn small" onClick={() => zoomBy(-0.15)} title="缩小">
+        <div className="tool-group zoom-group" title="Ctrl +/- 缩放，Ctrl+0 适应宽度">
+          <button className="btn small zoom-btn" onClick={() => zoomBy(-0.15)} title="缩小">
             −
           </button>
-          <span style={{ padding: '0 6px', fontSize: 11.5, color: 'var(--muted)', minWidth: 42, textAlign: 'center' }}>
+          <button className="zoom-value" onClick={() => setZoomMode('fit')} title="点击恢复「适应宽度」">
             {Math.round(scale * 100)}%
-          </span>
-          <button className="btn small" onClick={() => zoomBy(0.15)} title="放大">
-            ＋
+          </button>
+          <button className="btn small zoom-btn" onClick={() => zoomBy(0.15)} title="放大">
+            +
           </button>
         </div>
         <span className="chip">{attachment.page_count} 页</span>
