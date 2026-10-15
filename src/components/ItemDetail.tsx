@@ -6,7 +6,7 @@ const formatSize = (b: number) =>
   b >= 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(2)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`;
 
 export default function ItemDetail({ item }: { item: Item }) {
-  const setView = useApp((s) => s.setView);
+  const setDetailOpen = useApp((s) => s.setDetailOpen);
   const reextract = useApp((s) => s.reextract);
   const patchItem = useApp((s) => s.patchItem);
   const pushToast = useApp((s) => s.pushToast);
@@ -145,8 +145,8 @@ export default function ItemDetail({ item }: { item: Item }) {
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
-          <button className="btn primary" onClick={() => setView('reader')}>
-            打开阅读器
+          <button className="btn primary" onClick={() => setDetailOpen(false)}>
+            回到阅读器
           </button>
           <button className="btn" onClick={() => openCite([item.id])}>
             生成引用

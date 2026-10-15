@@ -77,7 +77,7 @@ export default function LibraryList() {
           <div
             key={it.id}
             className={`item-row ${selectedId === it.id ? 'active' : ''} ${selectedIds.includes(it.id) ? 'picked' : ''}`}
-            onClick={() => select(it.id, 'reader')}
+            onClick={() => select(it.id)}
           >
             <input
               type="checkbox"

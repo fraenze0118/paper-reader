@@ -45,7 +45,7 @@ export default function QueuePanel() {
                 {STATUS_LABEL[q.status]}
               </span>
               {q.itemId ? (
-                <button className="btn small" onClick={() => select(q.itemId!, 'reader')}>
+                <button className="btn small" onClick={() => select(q.itemId!)}>
                   打开
                 </button>
               ) : null}

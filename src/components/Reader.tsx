@@ -10,6 +10,7 @@ import AnnotationTab from './AnnotationTab';
 import NotesTab from './NotesTab';
 import AiPanel from './AiPanel';
 import OutlineTab from './OutlineTab';
+import ReaderInfoBar from './ReaderInfoBar';
 import { useOutline } from '../outlineStore';
 import type { OutlineSection } from '../types';
 
@@ -27,10 +28,29 @@ export default function Reader({
   focus: boolean;
   onToggleFocus: () => void;
 }) {
-  const setView = useApp((s) => s.setView);
   const rightTab = useApp((s) => s.rightTab);
   const setRightTab = useApp((s) => s.setRightTab);
+  const setDetailOpen = useApp((s) => s.setDetailOpen);
   const openCite = useApp((s) => s.openCite);
+
+  // 信息条展开状态：跨文献记住
+  const [infoOpen, setInfoOpen] = useState(() => {
+    try {
+      return localStorage.getItem('pr.infoBar') !== 'off';
+    } catch {
+      return true; // 隐私模式下 localStorage 可能不可用
+    }
+  });
+  const toggleInfo = useCallback(() => {
+    setInfoOpen((v) => {
+      try {
+        localStorage.setItem('pr.infoBar', v ? 'off' : 'on');
+      } catch {
+        /* 忽略 */
+      }
+      return !v;
+    });
+  }, []);
   const openItem = useAi((s) => s.openItem);
 
   const attachment = item.attachments[0] ?? null;
@@ -345,8 +365,8 @@ export default function Reader({
             在详情页删除后重新导入，或手动补充附件。
             <br />
             <br />
-            <button className="btn" onClick={() => setView('detail')}>
-              返回详情
+            <button className="btn" onClick={() => setDetailOpen(true)}>
+              打开详情
             </button>
           </div>
         </div>
@@ -355,13 +375,21 @@ export default function Reader({
   }
 
   return (
+    /* 栅格：工具栏 44px / 正文 1fr */
     <div className="reader">
       <div className="reader-toolbar">
-        <button className="btn small" onClick={() => setView('detail')} title="返回详情">
-          ← 详情
+        <button className="btn small" onClick={() => setDetailOpen(true)} title="打开详情（覆盖层，不丢失阅读位置）">
+          详情
         </button>
         <button className="btn small" onClick={onToggleFocus}>
           {focus ? '显示侧栏' : '专注阅读'}
+        </button>
+        <button
+          className={`btn small ${infoOpen ? 'active' : ''}`}
+          onClick={toggleInfo}
+          title={infoOpen ? '收起文献信息' : '展开文献信息'}
+        >
+          信息
         </button>
         <span className="title" title={item.title}>
           {item.title}
@@ -437,7 +465,10 @@ export default function Reader({
       </div>
 
       <div className="reader-body">
-        <div className="pdf-scroll" ref={scrollRef} onMouseDown={() => setSelMenu(null)}>
+        {/* 信息条只占 PDF 那一列，不横跨右侧面板 */}
+        <div className="doc-column">
+          {infoOpen ? <ReaderInfoBar item={item} onOpenDetail={() => setDetailOpen(true)} /> : null}
+          <div className="pdf-scroll" ref={scrollRef} onMouseDown={() => setSelMenu(null)}>
           {loadError ? (
             <div style={{ padding: 30, color: 'var(--danger)' }}>PDF 加载失败：{loadError}</div>
           ) : null}
@@ -471,6 +502,7 @@ export default function Reader({
               ))}
             </div>
           ) : null}
+          </div>
         </div>
 
         <aside className="side">

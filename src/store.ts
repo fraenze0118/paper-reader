@@ -26,7 +26,8 @@ interface AppState {
   filters: Filters;
   facets: Facets | null;
   selectedId: number | null;
-  view: 'detail' | 'reader';
+  /** 详情页是盖在阅读器上的覆盖层：阅读器保持挂载，切来切去不重渲染、不丢阅读位置 */
+  detailOpen: boolean;
   rightTab: RightTab;
   queue: QueueItem[] | null;
   toast: { kind: 'info' | 'error' | 'ok'; text: string } | null;
@@ -38,13 +39,13 @@ interface AppState {
   load: () => Promise<void>;
   loadMeta: () => Promise<void>;
   refreshConfig: () => Promise<void>;
-  select: (id: number | null, view?: 'detail' | 'reader') => void;
+  select: (id: number | null) => void;
+  setDetailOpen: (open: boolean) => void;
   setQuery: (q: string) => void;
   setFilter: (f: string) => void;
   setCollection: (id: number | null) => void;
   toggleFilter: (group: FilterGroup, value: string) => void;
   clearFilters: () => void;
-  setView: (v: 'detail' | 'reader') => void;
   setRightTab: (t: RightTab) => void;
   setSettings: (open: boolean) => void;
   toggleSelect: (id: number) => void;
@@ -75,7 +76,7 @@ export const useApp = create<AppState>((set, get) => ({
   filters: EMPTY_FILTERS,
   facets: null,
   selectedId: null,
-  view: 'detail',
+  detailOpen: false,
   rightTab: 'outline',
   queue: null,
   toast: null,
@@ -103,23 +104,30 @@ export const useApp = create<AppState>((set, get) => ({
 
   refreshConfig: async () => set({ config: await api.config() }),
 
-  select: (id, view) => {
-    const v = view ?? (id ? 'reader' : 'detail');
-    set({ selectedId: id, view: v });
-    // 深链：?item=3&view=detail，刷新后仍停在同一篇
+  select: (id) => {
+    // 换文献时阅读器始终是底层视图，详情覆盖层关掉
+    set({ selectedId: id, detailOpen: false });
+    // 深链：?item=3，刷新后仍停在同一篇
     try {
       const url = new URL(window.location.href);
-      if (id) {
-        url.searchParams.set('item', String(id));
-        if (v === 'detail') url.searchParams.set('view', 'detail');
-        else url.searchParams.delete('view');
-      } else {
-        url.searchParams.delete('item');
-        url.searchParams.delete('view');
-      }
+      if (id) url.searchParams.set('item', String(id));
+      else url.searchParams.delete('item');
+      url.searchParams.delete('view');
       window.history.replaceState(null, '', url.toString());
     } catch {
       /* 隐私模式下可能不可用，忽略 */
+    }
+  },
+
+  setDetailOpen: (detailOpen) => {
+    set({ detailOpen });
+    try {
+      const url = new URL(window.location.href);
+      if (get().selectedId && detailOpen) url.searchParams.set('view', 'detail');
+      else url.searchParams.delete('view');
+      window.history.replaceState(null, '', url.toString());
+    } catch {
+      /* 忽略 */
     }
   },
 
@@ -145,7 +153,6 @@ export const useApp = create<AppState>((set, get) => ({
     set({ filters: EMPTY_FILTERS });
     void get().load();
   },
-  setView: (view) => set({ view }),
   setRightTab: (rightTab) => set({ rightTab }),
   setSettings: (settingsOpen) => set({ settingsOpen }),
 
@@ -221,7 +228,7 @@ export const useApp = create<AppState>((set, get) => ({
         await get().load();
         await get().loadMeta();
         const first = get().queue?.[i];
-        if (i === 0 && first?.itemId) set({ selectedId: first.itemId, view: 'reader' });
+        if (i === 0 && first?.itemId) set({ selectedId: first.itemId, detailOpen: false });
       } catch (e) {
         upd({ status: 'error', message: (e as Error).message });
       }

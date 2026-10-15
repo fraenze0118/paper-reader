@@ -13,7 +13,8 @@ export default function App() {
   const items = useApp((s) => s.items);
   const stats = useApp((s) => s.stats);
   const selectedId = useApp((s) => s.selectedId);
-  const view = useApp((s) => s.view);
+  const detailOpen = useApp((s) => s.detailOpen);
+  const setDetailOpen = useApp((s) => s.setDetailOpen);
   const config = useApp((s) => s.config);
   const queue = useApp((s) => s.queue);
   const toast = useApp((s) => s.toast);
@@ -41,9 +42,10 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const id = Number(params.get('item'));
     if (id && items.some((i) => i.id === id)) {
-      select(id, params.get('view') === 'detail' ? 'detail' : 'reader');
+      select(id);
+      if (params.get('view') === 'detail') setDetailOpen(true);
     }
-  }, [items, select]);
+  }, [items, select, setDetailOpen]);
 
   useEffect(() => {
     const onDragEnter = (e: DragEvent) => {
@@ -84,11 +86,13 @@ export default function App() {
       if (e.key === 'Escape') {
         setSettings(false);
         setFocus(false);
+        // 详情覆盖层优先关闭
+        if (useApp.getState().detailOpen) setDetailOpen(false);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [setSettings]);
+  }, [setSettings, setDetailOpen]);
 
   const selected = items.find((i) => i.id === selectedId) ?? null;
 
@@ -127,11 +131,28 @@ export default function App() {
         <div style={focus ? { overflow: 'hidden' } : undefined}>
           <LibraryList />
         </div>
-        <main style={{ minWidth: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          {selected && view === 'reader' ? (
-            <Reader item={selected} focus={focus} onToggleFocus={() => setFocus((f) => !f)} />
-          ) : selected ? (
-            <ItemDetail item={selected} />
+        <main className="main-area">
+          {selected ? (
+            <>
+              {/* 阅读器始终保持挂载：详情页是盖在它上面的覆盖层。
+                  这样来回切换不会销毁 PDF、不重建几十页 canvas、也不丢阅读位置。 */}
+              <div className="main-reader" aria-hidden={detailOpen || undefined}>
+                <Reader item={selected} focus={focus} onToggleFocus={() => setFocus((f) => !f)} />
+              </div>
+              {detailOpen ? (
+                <div className="main-overlay">
+                  <div className="overlay-bar">
+                    <button className="btn small" onClick={() => setDetailOpen(false)}>
+                      ← 返回阅读
+                    </button>
+                    <span className="overlay-title" title={selected.title}>
+                      {selected.title}
+                    </span>
+                  </div>
+                  <ItemDetail item={selected} />
+                </div>
+              ) : null}
+            </>
           ) : (
             <EmptyState />
           )}

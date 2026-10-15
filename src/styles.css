@@ -209,6 +209,44 @@ input, textarea, select { font: inherit; color: inherit; }
 .outline-legend-item { display: inline-flex; align-items: center; gap: 4px; }
 .outline-legend-item i { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
 
+/* ---------- 主区域：阅读器 + 详情覆盖层 ---------- */
+
+.main-area { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.main-reader { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* 覆盖层盖在阅读器上，阅读器不卸载、尺寸不变 → 不触发重渲染、不丢滚动位置 */
+.main-overlay {
+  position: absolute; inset: 0; z-index: 10; background: var(--bg);
+  display: flex; flex-direction: column; min-height: 0;
+}
+.overlay-bar {
+  display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 44px; flex: none;
+  background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.overlay-title {
+  font-size: 12.8px; font-weight: 600; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+}
+.main-overlay > .detail { flex: 1; min-height: 0; }
+
+/* ---------- 阅读页信息条 ---------- */
+
+.info-bar {
+  display: flex; align-items: center; gap: 10px; padding: 5px 12px; min-height: 27px;
+  background: #fbfcfd; border-bottom: 1px solid var(--line); font-size: 11.8px; color: #4a525c;
+  overflow: hidden;
+}
+.info-main { display: flex; align-items: center; gap: 5px; min-width: 0; white-space: nowrap; overflow: hidden; }
+.info-authors { font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; max-width: 34%; }
+.info-venue { overflow: hidden; text-overflow: ellipsis; max-width: 32%; }
+.info-sep { color: #c3c9d1; flex: none; }
+.info-missing { color: var(--faint); font-style: italic; }
+.info-doi { color: var(--accent); text-decoration: none; flex: none; }
+.info-doi:hover { text-decoration: underline; }
+/* 徽标紧跟字段后面，不要推到窗口最右边（那样看起来像孤立的浮层） */
+.info-side { display: flex; align-items: center; gap: 5px; flex: none; margin-left: 3px; }
+.info-btn { border: 0; cursor: pointer; font: inherit; }
+.info-btn:hover { filter: brightness(0.95); }
+
 /* ---------- 引用对话框 ---------- */
 
 .cite-modal { width: 1060px; max-width: calc(100vw - 48px); height: 78vh; display: flex; flex-direction: column; }
@@ -309,7 +347,9 @@ input, textarea, select { font: inherit; color: inherit; }
 .reader-toolbar .spacer { flex: 1; }
 .reader-body { display: grid; grid-template-columns: 1fr 384px; min-height: 0; }
 
-.pdf-scroll { overflow: auto; }
+.pdf-scroll { flex: 1; overflow: auto; min-height: 0; }
+/* PDF 那一列：信息条 + 滚动区。信息条只占这一列，不横跨右侧面板 */
+.doc-column { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 /* 内层用 max-content + auto 居中：页面比容器窄时居中，比容器宽时两侧都能滚到
    （直接给 .page-wrap 加 margin:0 auto 会有"居中溢出"问题——左溢出永远滚不到） */
 .pdf-pages {
