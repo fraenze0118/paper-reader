@@ -254,21 +254,32 @@ export default function Reader({
   const reload = useCallback(async () => setAnnotations(await api.annotations(item.id)), [item.id]);
 
   const createHighlight = useCallback(
-    async (rects: Rect[], text: string, page: number, kind: Annotation['kind'] = 'highlight', image = '') => {
+    async (
+      rects: Rect[],
+      text: string,
+      page: number,
+      kind: Annotation['kind'] = 'highlight',
+      image = '',
+      colorOverride?: string,
+    ) => {
       if (!attachment) return;
-      const created = await api.createAnnotation({
-        item_id: item.id,
-        attachment_id: attachment.id,
-        page,
-        kind,
-        color,
-        rects,
-        text,
-        image_data: image,
-      });
-      setAnnotations((prev) => [...prev, created]);
-      setActiveId(created.id);
-      void useApp.getState().loadMeta();
+      try {
+        const created = await api.createAnnotation({
+          item_id: item.id,
+          attachment_id: attachment.id,
+          page,
+          kind,
+          color: colorOverride ?? color,
+          rects,
+          text,
+          image_data: image,
+        });
+        setAnnotations((prev) => [...prev, created]);
+        setActiveId(created.id);
+        void useApp.getState().loadMeta();
+      } catch (e) {
+        useApp.getState().pushToast('error', `高亮保存失败：${(e as Error).message}`);
+      }
     },
     [attachment, color, item.id],
   );
@@ -308,6 +319,22 @@ export default function Reader({
     },
     [setRightTab],
   );
+
+  /* 关闭划词菜单：只认 mousedown，不认 click。
+     真实拖拽选完字之后浏览器会再补发一个 click，如果按 click 关闭，
+     菜单会在出现的同一帧被关掉（用户根本来不及点颜色）。
+     mousedown 发生在打开菜单之前，所以不会误关；点空白处是新一次按下，能正常关闭。
+     工具条上的颜色点是例外——它要用当前选中直接上色。 */
+  useEffect(() => {
+    if (!selMenu) return;
+    const onDown = (e: MouseEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el?.closest('.sel-menu') || el?.closest('.color-picker')) return;
+      setSelMenu(null);
+    };
+    document.addEventListener('mousedown', onDown, true);
+    return () => document.removeEventListener('mousedown', onDown, true);
+  }, [selMenu]);
 
   if (!attachment) {
     return (
@@ -351,12 +378,21 @@ export default function Reader({
             ▣ 框选
           </button>
         </div>
-        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <div className="color-picker" style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
           {HIGHLIGHT_COLORS.map((c) => (
             <button
               key={c.name}
-              title={c.label}
-              onClick={() => setColor(c.name)}
+              title={selMenu ? `用「${c.label}」高亮选中的文字` : `${c.label}（先划词选中文字）`}
+              onClick={() => {
+                setColor(c.name);
+                // 已经有选中的文字时，点颜色就直接高亮它——不用先去找浮动菜单
+                if (selMenu) {
+                  const m = selMenu;
+                  setSelMenu(null);
+                  window.getSelection()?.removeAllRanges();
+                  void createHighlight(m.rects, m.text, m.page, 'highlight', '', c.name);
+                }
+              }}
               style={{
                 width: 18,
                 height: 18,
@@ -401,7 +437,7 @@ export default function Reader({
       </div>
 
       <div className="reader-body">
-        <div className="pdf-scroll" ref={scrollRef} onClick={() => setSelMenu(null)}>
+        <div className="pdf-scroll" ref={scrollRef} onMouseDown={() => setSelMenu(null)}>
           {loadError ? (
             <div style={{ padding: 30, color: 'var(--danger)' }}>PDF 加载失败：{loadError}</div>
           ) : null}
@@ -499,7 +535,6 @@ export default function Reader({
 
       {selMenu ? (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 55 }} onClick={() => setSelMenu(null)} />
           <div
             className="sel-menu"
             style={{
