@@ -1,0 +1,29 @@
+# ---- 依赖与构建产物 ----
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# ---- 运行时数据（含 API Key，绝不入库）----
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+
+# ---- 本地素材 ----
+# 自己的论文 PDF、临时截图、脚本产出的截图
+docs/paper/
+tmp/
+shots/
+
+# ---- 杂项 ----
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.local
+.env
+.env.*

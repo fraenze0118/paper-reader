@@ -1,0 +1,28 @@
+{
+  "name": "paper-reader",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "本地文献阅读工具 demo：PDF 导入 / 元数据识别 / 标注 / DeepSeek AI 伴读",
+  "scripts": {
+    "dev": "node --experimental-sqlite node_modules/vite/bin/vite.js --port 5273 --strictPort",
+    "build": "node --experimental-sqlite node_modules/vite/bin/vite.js build",
+    "typecheck": "tsc --noEmit",
+    "test:pdf": "node scripts/make-test-pdf.mjs"
+  },
+  "dependencies": {
+    "citeproc": "^2.4.63",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.2.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.0"
+  }
+}
