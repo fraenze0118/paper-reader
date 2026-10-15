@@ -96,7 +96,7 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <span className="logo">P</span>
+          <BrandLogo />
           paper-reader <small>本地文献阅读工具 · demo</small>
         </div>
         <div className="spacer" />
@@ -186,5 +186,25 @@ function EmptyState() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** 品牌标：与 public/favicon.svg 同一份矢量图形，保证标签页图标和界面 logo 一致 */
+function BrandLogo() {
+  return (
+    <svg className="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <linearGradient id="brand-logo-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#2f5fd0" />
+          <stop offset="100%" stopColor="#6b8ff0" />
+        </linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="15" fill="url(#brand-logo-bg)" />
+      <path
+        fill="#fff"
+        fillRule="evenodd"
+        d="M18 16 H34 A12 12 0 0 1 34 40 H26 V48 H18 Z M26 24 H34 A4 4 0 0 1 34 32 H26 Z"
+      />
+    </svg>
   );
 }

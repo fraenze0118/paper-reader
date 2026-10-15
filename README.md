@@ -204,14 +204,21 @@ src/
   components/CiteDialog.tsx   多格式引用生成
   components/*Tab.tsx         标注 / 笔记
   outlineStore.ts             目录状态
+public/
+  favicon.svg          图标源文件（矢量，路径画字母 P，不依赖字体）
+  favicon-32.png       标签页 PNG 回退（透明圆角，由脚本生成）
+  apple-touch-icon.png iOS 主屏图标（满幅不透明，由脚本生成）
 scripts/
   make-test-pdf.mjs   生成测试 PDF（fixtures/）
+  make-icons.mjs      从 favicon.svg 生成各尺寸 PNG 图标
   warm-csl.mjs        预热 CSL 样式与 locale 到 data/csl/
   e2e.mjs             真实浏览器里跑划词 + 框选，断言标注落库并自动清理
   shot.mjs            CDP 截图 + 抓控制台错误 + DOM 几何探测
 ```
 
 `fixtures/` 里三个测试 PDF：`with-doi.pdf`（真实 DOI，验证 CrossRef 链路）、`no-doi.pdf`（验证启发式兜底）、`deleteme.pdf`（验证删除链路，可反复导入）。
+
+**图标**：改 `public/favicon.svg` 后跑 `node scripts/make-icons.mjs` 重新生成 PNG——用无头 Chrome 渲染，保证 PNG 与浏览器实际显示的 SVG 逐像素一致。界面左上角 logo 用的是同一份矢量图形（内联在 `App.tsx` 的 `BrandLogo`），所以标签页图标和界面 logo 永远一致。iOS 主屏图标要满幅不透明（系统自己加圆角），脚本里会去掉 `rx` 并铺不透明底色。
 
 **几个刻意的技术选择**
 
